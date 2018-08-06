@@ -1,44 +1,53 @@
 <template>
-  <div class="search">
-    <div class="logo">
-      <img src="../assets/img/bb8.jpg" />
-    </div>
-    <div class="search_board">
-      <span>
-        <input v-model="inputData" autofocus="autofocus" class="s_input" />
-      </span>
-      <span>
-        <input @click="search(inputData)" type="submit" value="搜索" class="s_btn"/>
-      </span>
+  <div>
+    <Loading :show="isShow"></Loading>
+    <div class="search">
+      <div class="logo">
+        <img src="../assets/img/bb8.jpg" />
+      </div>
+      <div class="search_board">
+        <span>
+          <input v-model="inputData" autofocus="autofocus" class="s_input" />
+        </span>
+        <span>
+          <input @click="search(inputData)" type="submit" value="搜索" class="s_btn"/>
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import Loading from './Loading.vue';
 export default {
   name: 'Index',
   data () {
     return {
-      inputData: ''
+      inputData: '',
+      isShow: false,
     }
+  },
+  components: {
+    Loading
   },
   methods: {
     search: function (params) {
       if (params === '') {
         return
       }
-
+      this.isShow = true; 
       var url = location.origin + '/shell'
-      this.$http.get("http://localhost:3412/shell", {params: {'key':params}}).then((response) => { 
-      //this.$http.get(url, {params: {'key':params}}).then(response => { 
+      // this.$http.get("http://localhost:3412/shell", {params: {'key':params}}).then((response) => { 
+      this.$http.get(url, {params: {'key':params}}).then(response => { 
         var res = [];
         if (response.body != null) {
           res = response.body
         }
-        this.$router.push({name: 'Details', params:{ data: res}})
+        this.$router.push({name: 'Details', params:{ data: res, showContent: true}})
+        this.isShow = false;
       }, (response) => {
-        //alert(JSON.stringify(err.body))
-        alert(err.body)
+        this.$router.push({name: 'Details', params:{ errorInfo: response.statusText, showError: true}})
+        this.isShow = false;
       });
     }
   }

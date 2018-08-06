@@ -1,5 +1,6 @@
 <template>
   <div>
+    <Loading :show="isShow"></Loading>
     <div class="head">
       <div class="logo">
         <img src="../assets/img/bb8.jpg"/>
@@ -41,7 +42,7 @@
         </li>
       </div>
     </div>
-    <div class="content max-width center">
+    <div class="content max-width center" v-if="showContent">
       <li>
         <div>名称</div>
         <div>平台</div>
@@ -55,10 +56,17 @@
         <div><a  :href= "result.shellURL" target="_blank">shell链接</a></div>
       </li>
     </div>
+    <div class="content max-width center" v-if="showError">
+      <li>
+        <div>ERROR:</div>
+        <div>{{errorInfo}}</div>
+      </li>
+    </div>
   </div>
 </template>
 
 <script>
+import Loading from './Loading.vue';
 export default {
   name: 'Details',
   data() {
@@ -69,26 +77,41 @@ export default {
       selectedPlatform: "",
       selectedNamespace: "",
       datas: [],
+      showContent: false,
+      showError: false,
+      errorInfo: "",
+      isShow: false,
     }
+  },
+  components: {
+    Loading
   },
   methods: {
     search: function (searchstr, platform, namespace) {
         if (searchstr === '') {
           return 
         }
-
+        this.isShow = true;
         var url = location.origin + '/shell'
-        this.$http.get("http://localhost:3412/shell", {
-        //this.$http.get(url, {
+        // this.$http.get("http://localhost:3412/shell", {
+        this.$http.get(url, {
           params: {'key':searchstr}
         }).then((response) => { 
-          var res = [];
-          if (response.body != null) {
-            res = response.body
+          if (response.body == undefined || response.body.length == 0){
+             this.showError = true;
+             this.errorInfo = 'Not Found';
+             this.isShow = false;
+             return;
           }
-          this.datas = res;
+          this.datas = response.body;
+          this.showContent = true;
+          this.showError = false;
+          this.isShow = false;
         }, (response) => {
-          alert(err.body)
+          this.showContent = false;
+          this.showError = true;
+          this.errorInfo = response.statusText;
+          this.isShow = false;
         });
     }
   },
@@ -109,13 +132,20 @@ export default {
   },
   mounted() {
     
-    this.datas = this.$route.params.data
-    if (this.datas == undefined) {
-      return
+    if (this.$route.params.showContent != undefined) {
+      if (this.$route.params.data.length == 0) {
+        this.showError = true;
+        this.errorInfo = 'Not Found';
+      } else {
+        this.datas = this.$route.params.data;
+        this.showContent = true;
+      }
     }
-
+    if (this.$route.params.showError != undefined) {
+      this.showError = true;
+      this.errorInfo = this.$route.params.errorInfo;
+    }
     for(var i=0, len = this.datas.length; i < len; i++) {
-
       if (this.platforms.indexOf(this.datas[i].platform) == -1) {
         this.platforms.push(this.datas[i].platform)
       }
