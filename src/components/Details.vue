@@ -1,7 +1,10 @@
 <template>
   <div>
-    <Loading :show="isShow"></Loading>
-    <div class="head">
+    <Loading :show="isShow"></Loading>  
+    <div class="head max-width center">
+      <div class="logout">
+			  <a href="javascript:;" @click="logout"> [logout]</a>
+	    </div> 
       <div class="logo">
         <img src="../assets/img/bb8.jpg"/>
       </div>
@@ -26,7 +29,7 @@
           <div>平台</div>
           <div>
             <select v-model="selectedPlatform">
-              <option disabled selected value=''>请选择平台</option>
+              <option selected value=''>请选择平台</option>
               <option v-for="platform in platforms" >{{platform}}</option>
             </select>
           </div>
@@ -35,7 +38,7 @@
           <div>命名空间</div>
           <div>
             <select v-model="selectedNamespace">
-              <option disabled selected value=''>请选择命名空间</option>
+              <option selected value=''>请选择命名空间</option>
               <option v-for="namespace in namespaces" >{{namespace}}</option>
             </select>
           </div>
@@ -67,6 +70,7 @@
 
 <script>
 import Loading from './Loading.vue';
+import { cleanToken } from '../store'
 export default {
   name: 'Details',
   data() {
@@ -93,26 +97,49 @@ export default {
         }
         this.isShow = true;
         var url = location.origin + '/shell'
-        // this.$http.get("http://localhost:3412/shell", {
+        // var url = 'http://localhost:3412' + '/shell';
         this.$http.get(url, {
           params: {'key':searchstr}
         }).then((response) => { 
-          if (response.body == undefined || response.body.length == 0){
-             this.showError = true;
-             this.errorInfo = 'Not Found';
-             this.isShow = false;
-             return;
+          var res = response.data;
+          if (res == null) {
+            res = [];
           }
-          this.datas = response.body;
-          this.showContent = true;
-          this.showError = false;
-          this.isShow = false;
-        }, (response) => {
+          if (res.length == 0) {
+            this.isShow = false;
+            this.showError = true;
+            this.showContent = false;
+            this.errorInfo = 'Not Found';
+          } else {
+            this.isShow = false;
+            this.showError = false;
+            this.showContent = true;
+            this.datas = res;
+            this.refesh();
+          }
+        }).catch((response) => {
+          console.log(response)
           this.showContent = false;
           this.showError = true;
           this.errorInfo = response.statusText;
           this.isShow = false;
         });
+    },
+    logout: function() {
+      cleanToken()
+      this.$router.replace({path: '/login'})
+    },
+    refesh: function () {
+      this.platforms.length = 0;
+      this.namespaces.length = 0;
+      for(var i=0, len = this.datas.length; i < len; i++) {
+        if (this.platforms.indexOf(this.datas[i].platform) == -1) {
+          this.platforms.push(this.datas[i].platform)
+        }
+        if (this.namespaces.indexOf(this.datas[i].namespace) == -1) {
+          this.namespaces.push(this.datas[i].namespace)
+        }
+      }
     }
   },
   computed: {
@@ -131,7 +158,6 @@ export default {
     }
   },
   mounted() {
-    
     if (this.$route.params.showContent != undefined) {
       if (this.$route.params.data.length == 0) {
         this.showError = true;
@@ -165,13 +191,24 @@ export default {
   .max-width {
     width: 1280px;
   }
+  .logout{
+    width: 100%; 
+    display: inline-block;
+  }
+  .logout>a {
+    float: right;
+	  margin-right: 20px;
+	  margin-top: 5px;
+    color: #2c3e50; 
+    display: block; 
+  }
   .head {
     position: relative;
     height: 100px;
   }
   .head .logo {
     position: absolute;
-    left: 10%;
+    left: 60px;
     margin-left: 15px;
     top: 50%;
     margin-top: -20px;

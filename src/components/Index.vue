@@ -1,6 +1,9 @@
 <template>
   <div>
     <Loading :show="isShow"></Loading>
+    <div class="logout">
+			<a href="javascript:;" @click="logout">[logout]</a>
+	  </div>
     <div class="search">
       <div class="logo">
         <img src="../assets/img/bb8.jpg" />
@@ -19,6 +22,7 @@
 
 <script>
 import Loading from './Loading.vue';
+import { cleanToken } from '../store'
 export default {
   name: 'Index',
   data () {
@@ -36,19 +40,23 @@ export default {
         return
       }
       this.isShow = true; 
-      var url = location.origin + '/shell'
-      // this.$http.get("http://localhost:3412/shell", {params: {'key':params}}).then((response) => { 
+      var url = location.origin + '/shell';
+      // var url = 'http://localhost:3412' + '/shell';
       this.$http.get(url, {params: {'key':params}}).then(response => { 
-        var res = [];
-        if (response.body != null) {
-          res = response.body
+        var datas = response.data
+        if (response.data == null) {
+          datas = []
         }
-        this.$router.push({name: 'Details', params:{ data: res, showContent: true}})
+        this.$router.push({name: 'Details', params:{ data: datas, showContent: true}})
         this.isShow = false;
-      }, (response) => {
+      }).catch((response) => {
         this.$router.push({name: 'Details', params:{ errorInfo: response.statusText, showError: true}})
         this.isShow = false;
       });
+    },
+    logout: function() {
+      cleanToken();
+      this.$router.replace({path: '/login'});
     }
   }
 }
@@ -56,6 +64,18 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="stylus" scoped>
+  .logout{
+    position: relative;
+		width: 100%;
+    display: inline-block;
+  }
+  .logout>a {
+    float: right;
+	  margin-right: 20px;
+    color: #2c3e50; 
+    display: block; 
+    margin-top: 10px;
+  }
   .search {
     position: absolute;
     width: 550px;
