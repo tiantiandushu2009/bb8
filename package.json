@@ -2,7 +2,7 @@
   "name": "bb8",
   "version": "1.0.0",
   "description": "bb8 front",
-  "author": "kang-king <xiaoqi.kang@xtalpi.com>",
+  "author": "kang-king ",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
